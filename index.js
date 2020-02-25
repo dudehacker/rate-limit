@@ -1,10 +1,20 @@
 const express = require('express')
 const pg = require('pg')
+require('dotenv').config()
+var rateLimit = require('./ratelimit.js')
+
+const limiter = rateLimit({windowMs: Number(process.env.RATEWINDOW), max: Number(process.env.RATELIMIT)})
 
 const app = express()
 // configs come from standard PostgreSQL env vars
 // https://www.postgresql.org/docs/9.6/static/libpq-envars.html
-const pool = new pg.Pool()
+const pool = new pg.Pool({
+  user: process.env.PGUSER,
+  host: process.env.PGHOST,
+  database: process.env.PGDATABASE,
+  password: process.env.PGPASSWORD,
+  port: process.env.PGPORT,
+})
 
 const queryHandler = (req, res, next) => {
   pool.query(req.sqlQuery).then((r) => {
@@ -24,7 +34,7 @@ app.get('/events/hourly', (req, res, next) => {
     LIMIT 168;
   `
   return next()
-}, queryHandler)
+}, limiter,queryHandler)
 
 app.get('/events/daily', (req, res, next) => {
   req.sqlQuery = `
@@ -35,7 +45,7 @@ app.get('/events/daily', (req, res, next) => {
     LIMIT 7;
   `
   return next()
-}, queryHandler)
+}, limiter,queryHandler)
 
 app.get('/stats/hourly', (req, res, next) => {
   req.sqlQuery = `
@@ -45,7 +55,7 @@ app.get('/stats/hourly', (req, res, next) => {
     LIMIT 168;
   `
   return next()
-}, queryHandler)
+}, limiter,queryHandler)
 
 app.get('/stats/daily', (req, res, next) => {
   req.sqlQuery = `
@@ -59,7 +69,7 @@ app.get('/stats/daily', (req, res, next) => {
     LIMIT 7;
   `
   return next()
-}, queryHandler)
+}, limiter,queryHandler)
 
 app.get('/poi', (req, res, next) => {
   req.sqlQuery = `
@@ -67,7 +77,7 @@ app.get('/poi', (req, res, next) => {
     FROM public.poi;
   `
   return next()
-}, queryHandler)
+}, limiter,queryHandler)
 
 app.listen(process.env.PORT || 5555, (err) => {
   if (err) {
