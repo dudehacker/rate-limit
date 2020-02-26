@@ -28,7 +28,7 @@ app.get('/', (req, res) => {
 
 app.get('/events/hourly', (req, res, next) => {
   req.sqlQuery = `
-    SELECT date, hour, events
+    SELECT *
     FROM public.hourly_events
     ORDER BY date, hour
     LIMIT 168;
@@ -38,9 +38,9 @@ app.get('/events/hourly', (req, res, next) => {
 
 app.get('/events/daily', (req, res, next) => {
   req.sqlQuery = `
-    SELECT date, SUM(events) AS events
+    SELECT poi_id, date, SUM(events) AS events
     FROM public.hourly_events
-    GROUP BY date
+    GROUP BY poi_id,date
     ORDER BY date
     LIMIT 7;
   `
@@ -49,7 +49,7 @@ app.get('/events/daily', (req, res, next) => {
 
 app.get('/stats/hourly', (req, res, next) => {
   req.sqlQuery = `
-    SELECT date, hour, impressions, clicks, revenue
+    SELECT *
     FROM public.hourly_stats
     ORDER BY date, hour
     LIMIT 168;
@@ -59,12 +59,12 @@ app.get('/stats/hourly', (req, res, next) => {
 
 app.get('/stats/daily', (req, res, next) => {
   req.sqlQuery = `
-    SELECT date,
+    SELECT poi_id,date,
         SUM(impressions) AS impressions,
         SUM(clicks) AS clicks,
         SUM(revenue) AS revenue
     FROM public.hourly_stats
-    GROUP BY date
+    GROUP BY poi_id,date
     ORDER BY date
     LIMIT 7;
   `
