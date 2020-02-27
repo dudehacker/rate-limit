@@ -2,10 +2,12 @@ const express = require('express')
 const pg = require('pg')
 require('dotenv').config()
 var rateLimit = require('./ratelimit.js')
-
+var cors = require('cors')
 const limiter = rateLimit({windowMs: Number(process.env.RATEWINDOW), max: Number(process.env.RATELIMIT)})
 
 const app = express()
+app.use(cors())
+
 // configs come from standard PostgreSQL env vars
 // https://www.postgresql.org/docs/9.6/static/libpq-envars.html
 const pool = new pg.Pool({
